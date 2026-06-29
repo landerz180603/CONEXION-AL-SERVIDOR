@@ -1,4 +1,3 @@
-
 name: Conexion al Servidor
 
 on:
@@ -31,18 +30,22 @@ jobs:
           fi
 
       - name: Login a GitHub Container Registry
-        run: |
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
-            -u "${{ secrets.GHCR_USERNAME }}" \
-            --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Construir imagen Docker
         run: |
-          docker build -t ghcr.io/landerz180603/conexion-al-servidor:1.0.0 .
+          docker build \
+            -t ghcr.io/landerz180603/conexion-al-servidor:1.0.0 \
+            -t ghcr.io/landerz180603/conexion-al-servidor:latest .
 
       - name: Publicar imagen Docker
         run: |
           docker push ghcr.io/landerz180603/conexion-al-servidor:1.0.0
+          docker push ghcr.io/landerz180603/conexion-al-servidor:latest
 
       - name: Verificar conexión SSH
         uses: appleboy/ssh-action@v1
@@ -72,15 +75,9 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_SHH_PORT }}
           script: |
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
-              -u "${{ secrets.GHCR_USERNAME }}" \
-              --password-stdin
-
             docker pull ghcr.io/landerz180603/conexion-al-servidor:1.0.0
 
             docker service update \
               --image ghcr.io/landerz180603/conexion-al-servidor:1.0.0 \
               paul_andres
-
-
 
