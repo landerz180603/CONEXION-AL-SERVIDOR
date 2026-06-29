@@ -64,7 +64,7 @@ jobs:
           source: "stack.yml,Makefile"
           target: "/home/${{ secrets.VPS_USER }}/conexion-servidor"
 
-      - name: Desplegar aplicación
+      - name: Actualizar servicio Docker Swarm
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -72,14 +72,15 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_SHH_PORT }}
           script: |
-            mkdir -p ~/conexion-servidor
-            cd ~/conexion-servidor
-
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
               -u "${{ secrets.GHCR_USERNAME }}" \
               --password-stdin
 
             docker pull ghcr.io/landerz180603/conexion-al-servidor:1.0.0
 
-            docker stack deploy -c stack.yml paulgallo
+            docker service update \
+              --image ghcr.io/landerz180603/conexion-al-servidor:1.0.0 \
+              paul_andres
+
+
 
